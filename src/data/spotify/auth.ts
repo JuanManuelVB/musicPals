@@ -33,7 +33,7 @@ function getClientId() {
 }
 
 export function getRedirectUri() {
-  return import.meta.env.VITE_SPOTIFY_REDIRECT_URI || `${window.location.origin}/callback`;
+  return import.meta.env.VITE_SPOTIFY_REDIRECT_URI || `${window.location.origin}${import.meta.env.BASE_URL}callback`;
 }
 
 function randomString(length: number) {
