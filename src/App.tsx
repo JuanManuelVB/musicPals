@@ -12,6 +12,7 @@ import { ExtraStatsPage } from "@/features/extra-stats/ExtraStatsPage";
 import { SpotifySessionProvider } from "@/app/SpotifySessionProvider";
 import { ZipHistoryProvider } from "@/app/ZipHistoryProvider";
 import { MusicDataProvider } from "@/app/MusicDataProvider";
+import { SpotifyCallbackPage } from "@/app/SpotifyCallbackPage";
 
 export function App() {
   return (
@@ -20,6 +21,7 @@ export function App() {
         <MusicDataProvider>
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <Routes>
+              <Route path="callback" element={<SpotifyCallbackPage />} />
               <Route element={<AppLayout />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="rankings" element={<RankingsPage />} />

@@ -33,6 +33,14 @@ function readPreferredSource(): DataSource {
   }
 }
 
+function hasPreferredSource() {
+  try {
+    return localStorage.getItem("musicpals.source") !== null;
+  } catch {
+    return false;
+  }
+}
+
 function persistSource(source: DataSource) {
   if (source !== "demo" && source !== "spotify-api") return;
   try {
@@ -56,6 +64,7 @@ export function MusicDataProvider({ children }: PropsWithChildren) {
   };
 
   useEffect(() => {
+    if (spotify.status === "connected" && !hasPreferredSource() && source === "demo") setSource("spotify-api");
     if (source === "spotify-api" && spotify.status !== "connected" && spotify.status !== "connecting") setSource("demo");
     if (source === "spotify-zip" && !zip.events.length) setSource("demo");
   }, [source, spotify.status, zip.events.length]);

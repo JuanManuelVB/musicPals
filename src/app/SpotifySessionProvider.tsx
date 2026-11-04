@@ -8,6 +8,8 @@ type SpotifySessionContextValue = {
   status: SpotifySessionStatus;
   profile?: SpotifyProfile;
   error?: string;
+  callbackStatus: "idle" | "processing" | "error";
+  callbackError?: string;
   connect: () => Promise<void>;
   disconnect: () => void;
 };
@@ -22,6 +24,8 @@ export function SpotifySessionProvider({ children }: PropsWithChildren) {
   const [status, setStatus] = useState<SpotifySessionStatus>(() => (hasSpotifySession() ? "connecting" : "disconnected"));
   const [profile, setProfile] = useState<SpotifyProfile>();
   const [error, setError] = useState<string>();
+  const [callbackStatus, setCallbackStatus] = useState<"idle" | "processing" | "error">("idle");
+  const [callbackError, setCallbackError] = useState<string>();
   const callbackHandled = useRef(false);
 
   const loadProfile = useCallback(async () => {
@@ -38,16 +42,23 @@ export function SpotifySessionProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.has("code") || params.has("error")) {
+    const callbackPath = `${import.meta.env.BASE_URL}callback`;
+    if (window.location.pathname === callbackPath && (params.has("code") || params.has("error"))) {
       if (callbackHandled.current) return;
       callbackHandled.current = true;
+      setCallbackStatus("processing");
+      setCallbackError(undefined);
       void completeSpotifyAuthorization(window.location.search)
         .then(() => {
           window.history.replaceState({}, document.title, window.location.pathname);
-          return loadProfile();
+          return loadProfile().then(() => {
+            window.location.replace(`${window.location.origin}${import.meta.env.BASE_URL}`);
+          });
         })
         .catch((reason: unknown) => {
           window.history.replaceState({}, document.title, window.location.pathname);
+          setCallbackStatus("error");
+          setCallbackError(describeError(reason));
           setStatus("error");
           setError(describeError(reason));
         });
@@ -74,7 +85,7 @@ export function SpotifySessionProvider({ children }: PropsWithChildren) {
     setStatus("disconnected");
   }, []);
 
-  const value = useMemo(() => ({ status, profile, error, connect, disconnect }), [connect, disconnect, error, profile, status]);
+  const value = useMemo(() => ({ status, profile, error, callbackStatus, callbackError, connect, disconnect }), [callbackError, callbackStatus, connect, disconnect, error, profile, status]);
   return <SpotifySessionContext.Provider value={value}>{children}</SpotifySessionContext.Provider>;
 }
 

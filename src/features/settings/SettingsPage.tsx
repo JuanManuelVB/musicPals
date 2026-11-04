@@ -10,7 +10,7 @@ import { ZipImportCard } from "./ZipImportCard";
 
 export function SettingsPage() {
   const { status, profile, error, connect, disconnect } = useSpotifySession();
-  const { source, setSource } = useMusicData();
+  const { source, setSource, apiError } = useMusicData();
   const { events } = useZipHistory();
   const isConnected = status === "connected";
 
@@ -40,6 +40,12 @@ export function SettingsPage() {
         </div>
         {status === "connecting" && <Badge className="mt-4" variant="iris">Conectando...</Badge>}
         {error && <p className="mt-4 text-sm text-flare-400" role="alert">{error}</p>}
+        {source === "spotify-api" && apiError && (
+          <div className="mt-4 rounded-xl border border-flare-500/30 bg-flare-500/10 p-4 text-sm text-flare-300" role="alert">
+            <p>No se pudieron cargar los datos de Spotify API: {apiError}</p>
+            <Button className="mt-3" size="sm" variant="secondary" onClick={() => setSource("demo")}>Usar datos demo</Button>
+          </div>
+        )}
         <p className="mt-5 text-xs text-fog-500">Los tokens se guardan solo durante esta sesión del navegador y se eliminan al desconectar.</p>
       </Card>
       <div className="mt-6">
