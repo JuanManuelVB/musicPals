@@ -37,6 +37,24 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Validate Spotify build configuration
+        run: |
+          missing=0
+          if [ -z "${VITE_SPOTIFY_CLIENT_ID:-}" ]; then
+            echo "::error::Missing required variable VITE_SPOTIFY_CLIENT_ID"
+            missing=1
+          fi
+          if [ -z "${VITE_SPOTIFY_REDIRECT_URI:-}" ]; then
+            echo "::error::Missing required variable VITE_SPOTIFY_REDIRECT_URI"
+            missing=1
+          fi
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+        env:
+          VITE_SPOTIFY_CLIENT_ID: ${{ vars.VITE_SPOTIFY_CLIENT_ID }}
+          VITE_SPOTIFY_REDIRECT_URI: ${{ vars.VITE_SPOTIFY_REDIRECT_URI }}
+
       - name: Build
         run: npm run build
         env:
