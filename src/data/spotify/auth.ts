@@ -132,7 +132,9 @@ export async function beginSpotifyAuthorization() {
     state,
     scope: spotifyScopes.join(" "),
   });
-  window.location.assign(`${AUTHORIZATION_ENDPOINT}?${params.toString()}`);
+  const authorizationUrl = new URL(AUTHORIZATION_ENDPOINT);
+  authorizationUrl.search = params.toString();
+  window.location.replace(authorizationUrl.toString());
 }
 
 async function requestTokens(params: URLSearchParams) {
