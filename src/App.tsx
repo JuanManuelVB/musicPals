@@ -14,6 +14,7 @@ import { ZipHistoryProvider } from "@/app/ZipHistoryProvider";
 import { MusicDataProvider } from "@/app/MusicDataProvider";
 import { SpotifyCallbackPage } from "@/app/SpotifyCallbackPage";
 import { YouTubeSessionProvider } from "@/app/YouTubeSessionProvider";
+import { PrivacyPage } from "@/features/privacy/PrivacyPage";
 
 export function App() {
   return (
@@ -33,6 +34,7 @@ export function App() {
                   <Route path="amigos" element={<FriendsPage />} />
                   <Route path="informes" element={<ReportsPage />} />
                   <Route path="ajustes" element={<SettingsPage />} />
+                  <Route path="privacidad" element={<PrivacyPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Route>
               </Routes>

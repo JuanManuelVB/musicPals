@@ -8,6 +8,7 @@ import { useMusicData } from "@/app/MusicDataProvider";
 import { SourceSwitcher } from "@/app/SourceSwitcher";
 import { useYouTubeSession } from "@/app/YouTubeSessionProvider";
 import { PlatformDot } from "@/ui/platform";
+import { Link } from "react-router";
 import { ZipImportCard } from "./ZipImportCard";
 
 export function SettingsPage() {
@@ -64,6 +65,9 @@ export function SettingsPage() {
         </p>
         <SourceSwitcher className="mt-4 w-fit" />
       </Card>
+      <p className="mt-6 text-xs text-fog-500">
+        <Link className="underline hover:text-fog-300" to="/privacidad">Política de privacidad</Link>
+      </p>
     </>
   );
 }
