@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router";
+import { Link, NavLink, Outlet } from "react-router";
 import { APP_NAME } from "@/config";
 import { cn } from "@/ui/cn";
 import { navItems } from "./navigation";
@@ -55,6 +55,17 @@ export function AppLayout() {
         <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 sm:py-10">
           <SourceSwitcher className="mb-8 w-fit" />
           <Outlet />
+          <footer className="mt-12 border-t border-ink-700 pt-6 text-xs text-fog-500">
+            <p>
+              {APP_NAME} calcula estadísticas de tu música de Spotify y YouTube Music en tu navegador: artistas, canciones, evolución y
+              comparativas entre plataformas.
+            </p>
+            <p className="mt-2">
+              <Link className="underline hover:text-fog-300" to="/privacidad">Política de privacidad</Link>
+              {" · "}
+              <a className="underline hover:text-fog-300" href="mailto:musicpals@nebrisys.com">Contacto</a>
+            </p>
+          </footer>
         </div>
       </main>
     </div>
