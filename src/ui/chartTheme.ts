@@ -5,4 +5,6 @@ export const chartColors = {
   grid: "var(--color-ink-700)",
   tick: "var(--color-fog-500)",
   cursor: "var(--color-ink-600)",
+  spotify: "var(--color-spotify-400)",
+  ytmusic: "var(--color-ytmusic-400)",
 };

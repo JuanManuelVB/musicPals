@@ -1,42 +1,48 @@
 import { createContext, useCallback, useContext, useMemo, useState, type PropsWithChildren } from "react";
-import type { NormalizedListeningEvent, ZipImportReport } from "@/domain/history";
-import { importSpotifyHistoryZip } from "@/data/spotify/zipHistory";
+import type { NormalizedListeningEvent, Platform, ZipImportReport } from "@/domain/history";
+import { importSpotifyHistoryZip, type ZipImportResult } from "@/data/spotify/zipHistory";
+import { importYouTubeMusicTakeout } from "@/data/ytmusic/takeoutHistory";
 
-type ZipHistoryContextValue = {
+export type PlatformHistory = {
   events: NormalizedListeningEvent[];
   report?: ZipImportReport;
   error?: string;
-  importFile: (file: File) => Promise<void>;
-  clear: () => void;
 };
+
+type ZipHistoryContextValue = {
+  histories: Record<Platform, PlatformHistory>;
+  importFile: (platform: Platform, file: File) => Promise<void>;
+  clear: (platform: Platform) => void;
+};
+
+const importers: Record<Platform, (file: File) => Promise<ZipImportResult>> = {
+  spotify: importSpotifyHistoryZip,
+  ytmusic: importYouTubeMusicTakeout,
+};
+
+const empty: PlatformHistory = { events: [] };
 
 const ZipHistoryContext = createContext<ZipHistoryContextValue | undefined>(undefined);
 
 export function ZipHistoryProvider({ children }: PropsWithChildren) {
-  const [events, setEvents] = useState<NormalizedListeningEvent[]>([]);
-  const [report, setReport] = useState<ZipImportReport>();
-  const [error, setError] = useState<string>();
+  const [histories, setHistories] = useState<Record<Platform, PlatformHistory>>({ spotify: empty, ytmusic: empty });
 
-  const importFile = useCallback(async (file: File) => {
-    setError(undefined);
+  const importFile = useCallback(async (platform: Platform, file: File) => {
+    let next: PlatformHistory;
     try {
-      const result = await importSpotifyHistoryZip(file);
-      setEvents(result.events);
-      setReport(result.report);
+      const result = await importers[platform](file);
+      next = { events: result.events, report: result.report };
     } catch (reason) {
-      setEvents([]);
-      setReport(undefined);
-      setError(reason instanceof Error ? reason.message : "No se pudo importar el historial ZIP.");
+      next = { events: [], error: reason instanceof Error ? reason.message : "No se pudo importar el historial." };
     }
+    setHistories((current) => ({ ...current, [platform]: next }));
   }, []);
 
-  const clear = useCallback(() => {
-    setEvents([]);
-    setReport(undefined);
-    setError(undefined);
+  const clear = useCallback((platform: Platform) => {
+    setHistories((current) => ({ ...current, [platform]: empty }));
   }, []);
 
-  const value = useMemo(() => ({ events, report, error, importFile, clear }), [clear, error, events, importFile, report]);
+  const value = useMemo(() => ({ histories, importFile, clear }), [clear, histories, importFile]);
   return <ZipHistoryContext.Provider value={value}>{children}</ZipHistoryContext.Provider>;
 }
 

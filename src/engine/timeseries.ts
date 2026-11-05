@@ -1,4 +1,5 @@
-import type { ListeningPoint, TimeBucket, TimeGranularity } from "@/domain/types";
+import type { ListeningPoint, PlatformBreakdown, TimeBucket, TimeGranularity } from "@/domain/types";
+import type { Platform } from "@/domain/history";
 
 // Función pura: agrupa una serie diaria. Todas las fechas se tratan en UTC para evitar desfases horarios.
 const DAY_MS = 86_400_000;
@@ -30,6 +31,17 @@ function labelsFor(start: Date, granularity: TimeGranularity) {
   return { label: dayShort.format(start), fullLabel: dayLong.format(start) };
 }
 
+/** Suma dos repartos por plataforma sin mutar `addition`. */
+function mergeBreakdown(base: PlatformBreakdown | undefined, addition: PlatformBreakdown): PlatformBreakdown {
+  const result: PlatformBreakdown = { ...base };
+  for (const platform of Object.keys(addition) as Platform[]) {
+    const current = result[platform];
+    const extra = addition[platform]!;
+    result[platform] = { minutes: (current?.minutes ?? 0) + extra.minutes, plays: (current?.plays ?? 0) + extra.plays };
+  }
+  return result;
+}
+
 /** Agrupa puntos diarios (ordenados por fecha) por día, semana (lunes) o mes. */
 export function aggregateSeries(points: ListeningPoint[], granularity: TimeGranularity): TimeBucket[] {
   const buckets = new Map<string, TimeBucket>();
@@ -42,8 +54,17 @@ export function aggregateSeries(points: ListeningPoint[], granularity: TimeGranu
       existing.minutes += point.minutes;
       existing.plays += point.plays;
       existing.days += 1;
+      if (point.byPlatform) existing.byPlatform = mergeBreakdown(existing.byPlatform, point.byPlatform);
     } else {
-      buckets.set(key, { key, ...labelsFor(start, granularity), minutes: point.minutes, plays: point.plays, days: 1, isPartial: false });
+      buckets.set(key, {
+        key,
+        ...labelsFor(start, granularity),
+        minutes: point.minutes,
+        plays: point.plays,
+        days: 1,
+        isPartial: false,
+        byPlatform: point.byPlatform && mergeBreakdown(undefined, point.byPlatform),
+      });
     }
   }
 

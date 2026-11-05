@@ -2,6 +2,7 @@ import { NavLink, Outlet } from "react-router";
 import { APP_NAME } from "@/config";
 import { cn } from "@/ui/cn";
 import { navItems } from "./navigation";
+import { SourceSwitcher } from "./SourceSwitcher";
 
 function Brand() {
   return (
@@ -52,6 +53,7 @@ export function AppLayout() {
 
       <main className="lg:pl-64">
         <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 sm:py-10">
+          <SourceSwitcher className="mb-8 w-fit" />
           <Outlet />
         </div>
       </main>

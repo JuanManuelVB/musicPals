@@ -1,12 +1,11 @@
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Music } from "lucide-react";
-import type { TimeGranularity } from "@/domain/types";
-import type { SpotifyAffinityTrack, SpotifyTimeRange } from "@/domain/sources";
+import type { PlatformTotals, TimeBucket, TimeGranularity } from "@/domain/types";
+import type { DataSource, SpotifyAffinityTrack, SpotifyTimeRange } from "@/domain/sources";
 import { aggregateSeries } from "@/engine/timeseries";
 import { formatDuration, formatNumber } from "@/lib/format";
 import { PageHeader } from "@/ui/PageHeader";
-import { Badge } from "@/ui/Badge";
 import { Card, CardTitle } from "@/ui/Card";
 import { chartColors } from "@/ui/chartTheme";
 import { SegmentedControl, type SegmentedOption } from "@/ui/SegmentedControl";
@@ -14,6 +13,8 @@ import { EvolutionChart, type ChartDatum } from "./EvolutionChart";
 import { useEvolutionSeries } from "./useEvolutionSeries";
 import { useMusicData } from "@/app/MusicDataProvider";
 import { EmptyState } from "@/ui/EmptyState";
+import { platforms, type Platform } from "@/domain/history";
+import { PlatformLegend, SourceBadge } from "@/ui/platform";
 
 const granularityOptions: SegmentedOption<TimeGranularity>[] = [
   { value: "day", label: "Día" },
@@ -291,29 +292,61 @@ function HighlightGroup({ title, items, empty }: { title: string; items: string[
   return <div><p className="text-sm font-medium text-fog-100">{title}</p>{items.length ? <ul className="mt-1 flex flex-wrap gap-2">{items.map((item) => <li key={item} className="rounded-full bg-ink-800 px-3 py-1 text-xs text-fog-300">{item}</li>)}</ul> : <p className="mt-1 text-xs text-fog-500">{empty}</p>}</div>;
 }
 
+/** Valores de cada plataforma para las áreas apiladas. */
+function perPlatform(bucket: TimeBucket, pick: (totals: PlatformTotals) => number): Partial<Record<Platform, number>> {
+  return Object.fromEntries(platforms.map((platform) => [platform, pick(bucket.byPlatform?.[platform] ?? { minutes: 0, plays: 0 })]));
+}
+
+/** Con una sola plataforma, el gráfico usa su color; en demo se mantienen los colores por métrica. */
+function singleColor(source: DataSource, fallback: string) {
+  if (source === "spotify-zip") return chartColors.spotify;
+  if (source === "ytmusic-zip") return chartColors.ytmusic;
+  return fallback;
+}
+
 export function EvolutionPage() {
   const { source, sourceInfo, apiError, isLoadingApi } = useMusicData();
   const series = useEvolutionSeries();
   const [granularity, setGranularity] = useState<TimeGranularity>("week");
   const buckets = useMemo(() => (series ? aggregateSeries(series, granularity) : []), [series, granularity]);
-  const timeData: ChartDatum[] = useMemo(() => buckets.map((bucket) => ({ ...bucket, value: bucket.minutes / 60 })), [buckets]);
-  const playsData: ChartDatum[] = useMemo(() => buckets.map((bucket) => ({ ...bucket, value: bucket.plays })), [buckets]);
+  const isCombined = source === "combined";
+  const timeData: ChartDatum[] = useMemo(
+    () => buckets.map((bucket) => ({ ...bucket, value: bucket.minutes / 60, ...perPlatform(bucket, (totals) => totals.minutes / 60) })),
+    [buckets],
+  );
+  const playsData: ChartDatum[] = useMemo(
+    () => buckets.map((bucket) => ({ ...bucket, value: bucket.plays, ...perPlatform(bucket, (totals) => totals.plays) })),
+    [buckets],
+  );
+  const stacks = isCombined ? platforms : undefined;
 
   if (source === "spotify-api") {
-    if (isLoadingApi) return <><PageHeader title="Evolución" description="Panel de análisis con datos actuales de Spotify." actions={<Badge variant="iris">{sourceInfo.label}</Badge>} /><EmptyState icon={Music} title="Cargando análisis" description="Consultando los tres periodos de afinidad y tu actividad reciente." /></>;
-    if (apiError) return <><PageHeader title="Evolución" description="Panel de análisis con datos actuales de Spotify." actions={<Badge variant="iris">{sourceInfo.label}</Badge>} /><EmptyState icon={Music} title="No se pudo cargar Evolución" description={apiError} /></>;
-    return <><PageHeader title="Evolución" description="Comparativas de afinidad y actividad reciente disponible en Spotify." actions={<Badge variant="iris">{sourceInfo.label}</Badge>} /><ApiEvolution onRetry={() => window.location.reload()} /></>;
+    if (isLoadingApi) return <><PageHeader title="Evolución" description="Panel de análisis con datos actuales de Spotify." actions={<SourceBadge source={source} label={sourceInfo.label} />} /><EmptyState icon={Music} title="Cargando análisis" description="Consultando los tres periodos de afinidad y tu actividad reciente." /></>;
+    if (apiError) return <><PageHeader title="Evolución" description="Panel de análisis con datos actuales de Spotify." actions={<SourceBadge source={source} label={sourceInfo.label} />} /><EmptyState icon={Music} title="No se pudo cargar Evolución" description={apiError} /></>;
+    return <><PageHeader title="Evolución" description="Comparativas de afinidad y actividad reciente disponible en Spotify." actions={<SourceBadge source={source} label={sourceInfo.label} />} /><ApiEvolution onRetry={() => window.location.reload()} /></>;
   }
 
-  if (!series) return <><PageHeader title="Evolución" description="Spotify no proporciona el historial completo de reproducciones." actions={<Badge variant="iris">{sourceInfo.label}</Badge>} /><EmptyState icon={Music} title="Historial no disponible en esta fuente" description="Importa el ZIP Extended Streaming History para calcular la evolución temporal." /></>;
+  if (source === "ytmusic-api") {
+    return (
+      <>
+        <PageHeader title="Evolución" description="Google no proporciona el historial de reproducciones por API." actions={<SourceBadge source={source} label={sourceInfo.label} />} />
+        <EmptyState icon={Music} title="Historial no disponible con la cuenta conectada" description="Importa tu historial de YouTube Music desde Google Takeout en Ajustes para ver la evolución temporal." />
+      </>
+    );
+  }
+
+  if (!series) return <><PageHeader title="Evolución" description="Spotify no proporciona el historial completo de reproducciones." actions={<SourceBadge source={source} label={sourceInfo.label} />} /><EmptyState icon={Music} title="Historial no disponible en esta fuente" description="Importa el ZIP Extended Streaming History para calcular la evolución temporal." /></>;
   const noun = unitNoun[granularity];
   return (
     <>
-      <PageHeader title="Evolución" description="Cómo ha cambiado tu escucha a lo largo de los últimos 12 meses." actions={<Badge variant={source === "spotify-zip" ? "accent" : "iris"}>{sourceInfo.label}</Badge>} />
-      <div className="mb-5"><SegmentedControl label="Agrupar por" options={granularityOptions} value={granularity} onChange={setGranularity} /></div>
+      <PageHeader title="Evolución" description="Cómo ha cambiado tu escucha a lo largo de los últimos 12 meses." actions={<SourceBadge source={source} label={sourceInfo.label} />} />
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <SegmentedControl label="Agrupar por" options={granularityOptions} value={granularity} onChange={setGranularity} />
+        {isCombined && <PlatformLegend />}
+      </div>
       <div className="space-y-6">
-        <Card><CardTitle>{`Tiempo escuchado por ${noun}`}</CardTitle><div className="mt-4"><EvolutionChart data={timeData} color={chartColors.time} formatTick={(value) => `${Number(value.toFixed(1))} h`} formatTooltipValue={(datum) => formatDuration(datum.minutes)} /></div></Card>
-        <Card><CardTitle>{`Reproducciones por ${noun}`}</CardTitle><div className="mt-4"><EvolutionChart data={playsData} color={chartColors.plays} formatTick={formatNumber} formatTooltipValue={(datum) => `${formatNumber(datum.plays)} reproducciones`} /></div></Card>
+        <Card><CardTitle>{`Tiempo escuchado por ${noun}`}</CardTitle><div className="mt-4"><EvolutionChart data={timeData} color={singleColor(source, chartColors.time)} stacks={stacks} formatTick={(value) => `${Number(value.toFixed(1))} h`} formatTooltipValue={(datum) => formatDuration(datum.minutes)} /></div></Card>
+        <Card><CardTitle>{`Reproducciones por ${noun}`}</CardTitle><div className="mt-4"><EvolutionChart data={playsData} color={singleColor(source, chartColors.plays)} stacks={stacks} formatTick={formatNumber} formatTooltipValue={(datum) => `${formatNumber(datum.plays)} reproducciones`} /></div></Card>
       </div>
     </>
   );

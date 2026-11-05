@@ -24,6 +24,10 @@
   --color-sun-400: #ffc857;
   --color-iris-400: #9b8cff;
   --color-iris-500: #7c6bff;
+
+  /* Plataformas: un color fijo por servicio en toda la aplicación */
+  --color-spotify-400: #1ed760;
+  --color-ytmusic-400: #ff4d6d;
 }
 
 @layer base {

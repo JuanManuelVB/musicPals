@@ -1,5 +1,5 @@
 /** Identificador estable de la procedencia de un conjunto de datos. */
-export type DataSource = "demo" | "spotify-api" | "spotify-zip";
+export type DataSource = "demo" | "spotify-api" | "spotify-zip" | "ytmusic-api" | "ytmusic-zip" | "combined";
 
 export type DataSourceInfo = {
   id: DataSource;
@@ -30,6 +30,36 @@ export const spotifyZipSource: DataSourceInfo = {
   label: "Spotify Extended Streaming History",
   description: "Estadísticas calculadas localmente a partir del ZIP exportado.",
   limitations: ["El periodo depende de los archivos incluidos en el ZIP exportado."],
+};
+
+export const ytmusicApiSource: DataSourceInfo = {
+  id: "ytmusic-api",
+  label: "YouTube Music (cuenta de Google)",
+  description: "Canciones con «Me gusta» y listas de tu cuenta, obtenidas con YouTube Data API.",
+  limitations: [
+    "Google no ofrece el historial de reproducciones por API; para estadísticas de escucha importa Google Takeout.",
+    "Los artistas se ordenan por número de canciones con «Me gusta», no por reproducciones.",
+  ],
+};
+
+export const ytmusicZipSource: DataSourceInfo = {
+  id: "ytmusic-zip",
+  label: "YouTube Music (Google Takeout)",
+  description: "Estadísticas calculadas localmente a partir del historial exportado con Google Takeout.",
+  limitations: [
+    "Google Takeout no incluye la duración escuchada: el tiempo se estima en 3,5 minutos por reproducción.",
+    "YouTube Music no ofrece álbumes en el historial exportado.",
+  ],
+};
+
+export const combinedSource: DataSourceInfo = {
+  id: "combined",
+  label: "Spotify + YouTube Music",
+  description: "Historiales de Spotify y YouTube Music combinados; los artistas y canciones se unen por nombre.",
+  limitations: [
+    "El tiempo de YouTube Music es estimado.",
+    "Las coincidencias entre plataformas dependen de que el nombre del artista y la canción sea idéntico.",
+  ],
 };
 
 export type SpotifyTimeRange = "short_term" | "medium_term" | "long_term";

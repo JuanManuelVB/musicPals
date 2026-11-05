@@ -1,4 +1,4 @@
-import type { MusicLibrary } from "@/domain/types";
+import type { MusicLibrary, PlatformBreakdown } from "@/domain/types";
 
 export type RankingCategory = "artists" | "tracks" | "albums";
 export type RankingSort = "plays" | "minutes";
@@ -11,35 +11,39 @@ export type RankingItem = {
   imageUrl?: string;
   plays: number;
   minutes: number;
+  byPlatform?: PlatformBreakdown;
 };
 
 export function toRankingItems(category: RankingCategory, library: MusicLibrary): RankingItem[] {
   switch (category) {
     case "artists":
-      return library.artists.map(({ artist, plays, minutes }) => ({
+      return library.artists.map(({ artist, plays, minutes, byPlatform }) => ({
         id: artist.id,
         name: artist.name,
         subtitle: artist.genres[0] ?? "Sin género",
         imageUrl: artist.imageUrl,
         plays,
         minutes,
+        byPlatform,
       }));
     case "tracks":
-      return library.tracks.map(({ track, artistName, plays, minutes }) => ({
+      return library.tracks.map(({ track, artistName, plays, minutes, byPlatform }) => ({
         id: track.id,
         name: track.name,
         subtitle: artistName,
         plays,
         minutes,
+        byPlatform,
       }));
     case "albums":
-      return library.albums.map(({ album, artistName, plays, minutes }) => ({
+      return library.albums.map(({ album, artistName, plays, minutes, byPlatform }) => ({
         id: album.id,
         name: album.name,
         subtitle: artistName,
         imageUrl: album.imageUrl,
         plays,
         minutes,
+        byPlatform,
       }));
   }
 }

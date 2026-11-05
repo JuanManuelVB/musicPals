@@ -4,6 +4,7 @@
  * en la fase 1 se rellenan con datos ficticios.
  */
 
+import type { Platform } from "./history";
 import type { DataSourceInfo, RecentlyPlayedTrack, SpotifyAffinityArtist, SpotifyAffinityTrack, SpotifyTimeRange } from "./sources";
 
 export type Artist = {
@@ -24,6 +25,12 @@ export type Track = {
   durationMs?: number;
 };
 
+/** Minutos y reproducciones de una plataforma. */
+export type PlatformTotals = { minutes: number; plays: number };
+
+/** Reparto por plataforma. Solo se rellena con historiales importados. */
+export type PlatformBreakdown = Partial<Record<Platform, PlatformTotals>>;
+
 export type ArtistStat = {
   artist: Artist;
   minutes: number;
@@ -34,6 +41,7 @@ export type ArtistStat = {
    * (pudo escucharse antes en otra cuenta, fuera de Spotify o antes del periodo exportado).
    */
   firstPlayedAt: string;
+  byPlatform?: PlatformBreakdown;
 };
 
 export type TrackStat = {
@@ -41,6 +49,7 @@ export type TrackStat = {
   artistName: string;
   minutes: number;
   plays: number;
+  byPlatform?: PlatformBreakdown;
 };
 
 export type GenreShare = {
@@ -61,6 +70,7 @@ export type ListeningSummary = {
   genres: GenreShare[];
   /** Artistas con primera escucha registrada reciente, del más nuevo al más antiguo. */
   newArtists: ArtistStat[];
+  byPlatform?: PlatformBreakdown;
 };
 
 export type Album = {
@@ -75,6 +85,7 @@ export type AlbumStat = {
   artistName: string;
   minutes: number;
   plays: number;
+  byPlatform?: PlatformBreakdown;
 };
 
 /** Estadísticas por entidad, base de los rankings. */
@@ -98,6 +109,7 @@ export type ListeningPoint = {
   date: string;
   minutes: number;
   plays: number;
+  byPlatform?: PlatformBreakdown;
 };
 
 export type TimeGranularity = "day" | "week" | "month";
@@ -114,4 +126,14 @@ export type TimeBucket = {
   days: number;
   /** true si el periodo no está completo (por ejemplo, semanas en los extremos de la serie). */
   isPartial: boolean;
+  byPlatform?: PlatformBreakdown;
+};
+
+/** Datos de la cuenta de YouTube: preferencias explícitas, no reproducciones. */
+export type YouTubeMusicApiData = {
+  source: DataSourceInfo;
+  likedTracks: { track: Track; artistName: string; imageUrl?: string }[];
+  /** Artistas ordenados por número de canciones con «Me gusta». */
+  likedArtists: { artist: Artist; likedCount: number }[];
+  playlists: { id: string; title: string; itemCount: number; imageUrl?: string }[];
 };

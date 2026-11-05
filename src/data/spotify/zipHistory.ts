@@ -15,11 +15,11 @@ export class ZipHistoryError extends Error {
   }
 }
 
-function isRecord(value: unknown): value is RawHistoryRecord {
+export function isRecord(value: unknown): value is RawHistoryRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function nonEmptyString(value: unknown) {
+export function nonEmptyString(value: unknown) {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
 }
 
@@ -43,6 +43,7 @@ function normalizeRecord(record: RawHistoryRecord): NormalizedListeningEvent | u
   if (!playedAt || Number.isNaN(Date.parse(playedAt)) || !trackName || !artistName || durationMs === undefined) return undefined;
 
   return {
+    platform: "spotify",
     playedAt: new Date(playedAt).toISOString(),
     trackId: trackIdFromUri(record.spotify_track_uri, artistName, trackName),
     trackName,
@@ -56,13 +57,16 @@ function isHistoryFile(name: string) {
   return /(?:streaminghistory|endsong|history)/i.test(name);
 }
 
-export async function importSpotifyHistoryZip(file: File): Promise<ZipImportResult> {
-  let archive: Record<string, Uint8Array>;
+export async function readZip(file: File): Promise<Record<string, Uint8Array>> {
   try {
-    archive = unzipSync(new Uint8Array(await file.arrayBuffer()));
+    return unzipSync(new Uint8Array(await file.arrayBuffer()));
   } catch {
     throw new ZipHistoryError("El archivo no es un ZIP válido o está dañado.");
   }
+}
+
+export async function importSpotifyHistoryZip(file: File): Promise<ZipImportResult> {
+  const archive = await readZip(file);
 
   const jsonEntries = Object.entries(archive).filter(([name]) => name.toLowerCase().endsWith(".json"));
   const historyEntries = jsonEntries.filter(([name]) => isHistoryFile(name));

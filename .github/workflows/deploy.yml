@@ -60,6 +60,8 @@ jobs:
         env:
           VITE_SPOTIFY_CLIENT_ID: ${{ vars.VITE_SPOTIFY_CLIENT_ID }}
           VITE_SPOTIFY_REDIRECT_URI: ${{ vars.VITE_SPOTIFY_REDIRECT_URI }}
+          # Opcional: sin ella el botón de YouTube Music muestra un error de configuración.
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
 
       - name: Prepare SPA fallback
         run: cp dist/index.html dist/404.html
