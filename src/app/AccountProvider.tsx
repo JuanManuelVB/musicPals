@@ -67,7 +67,13 @@ export function AccountProvider({ children }: PropsWithChildren) {
     });
   }, [load]);
 
-  const signIn = useCallback(() => signInWithRedirect({ provider: "Google" }), []);
+  const signIn = useCallback(async () => {
+    try {
+      await signInWithRedirect({ provider: "Google" });
+    } catch (reason) {
+      setState({ status: "signedOut", error: `No se pudo abrir el inicio de sesión: ${describeError(reason)}` });
+    }
+  }, []);
   const signOut = useCallback(() => amplifySignOut(), []);
 
   const claimUsername = useCallback(

@@ -6,6 +6,7 @@ const appOrigins = [
   "http://localhost:5174/",
   "https://desarrollo.d3brq93wp5vxmh.amplifyapp.com/",
   "https://main.d3brq93wp5vxmh.amplifyapp.com/",
+  "https://musicpals.nebrisys.com/",
 ];
 
 export const auth = defineAuth({
