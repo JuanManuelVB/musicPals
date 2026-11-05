@@ -65,3 +65,9 @@ Cada plataforma tiene su color (`spotify-400` y `ytmusic-400` en `src/index.css`
 selector de fuente permite ver Spotify, YouTube Music o «Ambas»; en la vista combinada
 artistas y canciones se unen por nombre y cada fila, gráfico y resumen muestra el
 reparto por plataforma.
+
+## Licencia
+
+© 2026 los autores de musicPals. Este proyecto se distribuye bajo la licencia
+[Creative Commons Atribución-NoComercial-SinDerivadas 4.0 Internacional (CC BY-NC-ND 4.0)](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.es).
+Puedes compartirlo citando la autoría, pero no usarlo con fines comerciales ni distribuir versiones modificadas. El texto legal completo está en [LICENSE](LICENSE).

@@ -1,6 +1,7 @@
 {
   "name": "music-stats",
   "private": true,
+  "license": "CC-BY-NC-ND-4.0",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
