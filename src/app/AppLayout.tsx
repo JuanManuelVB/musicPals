@@ -1,8 +1,11 @@
-import { Link, NavLink, Outlet } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
+import { ChevronDown } from "lucide-react";
 import { APP_NAME } from "@/config";
 import { cn } from "@/ui/cn";
 import { navItems } from "./navigation";
 import { SourceSwitcher } from "./SourceSwitcher";
+import { UsernameDialog } from "@/features/account/UsernameDialog";
 
 function Brand() {
   return (
@@ -20,6 +23,58 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-ink-700 text-fog-100" : "text-fog-300 hover:bg-ink-800 hover:text-fog-100",
   );
 
+function MobileHeader() {
+  const [open, setOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const { pathname } = useLocation();
+
+  // Cierra el menú al cambiar de página
+  useEffect(() => setOpen(false), [pathname]);
+
+  // Cierra el menú al tocar fuera o pulsar Escape
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (e: PointerEvent) => {
+      if (!headerRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <header ref={headerRef} className="sticky top-0 z-10 border-b border-ink-700 bg-ink-950/90 backdrop-blur lg:hidden">
+      <div className="px-4 py-3">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          aria-label={open ? "Cerrar menú" : "Abrir menú"}
+          className="-mx-2 flex items-center gap-1.5 rounded-xl px-2 py-1 focus-visible:outline-2 focus-visible:outline-iris-400"
+        >
+          <Brand />
+          <ChevronDown className={cn("size-5 text-fog-300 transition-transform", open && "rotate-180")} aria-hidden />
+        </button>
+      </div>
+      {open && (
+        <nav id="mobile-nav" aria-label="Principal" className="flex flex-col gap-1 border-t border-ink-700 px-3 py-2">
+          {navItems.map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to} end={to === "/"} className={linkClass}>
+              <Icon className="size-4.5" aria-hidden />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
+    </header>
+  );
+}
+
 export function AppLayout() {
   return (
     <div className="min-h-dvh">
@@ -36,20 +91,8 @@ export function AppLayout() {
         </nav>
       </aside>
 
-      {/* Móvil: cabecera con navegación desplazable */}
-      <header className="sticky top-0 z-10 border-b border-ink-700 bg-ink-950/90 backdrop-blur lg:hidden">
-        <div className="px-4 pt-3">
-          <Brand />
-        </div>
-        <nav aria-label="Principal" className="flex gap-1 overflow-x-auto px-3 py-2">
-          {navItems.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} end={to === "/"} className={linkClass}>
-              <Icon className="size-4" aria-hidden />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-      </header>
+      {/* Móvil: cabecera con menú desplegable desde el logo */}
+      <MobileHeader />
 
       <main className="lg:pl-64">
         <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 sm:py-10">
@@ -68,6 +111,8 @@ export function AppLayout() {
           </footer>
         </div>
       </main>
+
+      <UsernameDialog />
     </div>
   );
 }

@@ -21,8 +21,9 @@ export function PrivacyPage() {
       <div className="space-y-6">
         <Section title="Resumen">
           <p>
-            {APP_NAME} es una aplicación web que calcula estadísticas de escucha musical directamente en tu navegador. No tiene servidor propio
-            ni base de datos: no recopilamos, almacenamos ni compartimos tus datos.
+            {APP_NAME} es una aplicación web que calcula estadísticas de escucha musical directamente en tu navegador. Tu historial y tus
+            estadísticas no salen de tu navegador. Solo si creas una cuenta en la sección Amigos guardamos los datos de perfil que se describen
+            abajo; nunca los vendemos ni los usamos para publicidad.
           </p>
         </Section>
 
@@ -49,6 +50,22 @@ export function PrivacyPage() {
           </p>
         </Section>
 
+        <Section title="Cuenta de musicPals (sección Amigos)">
+          <p>
+            Crear una cuenta es opcional. Si inicias sesión con Google en la sección Amigos, guardamos en AWS (región de Estocolmo, UE) tu
+            correo electrónico y tu nombre de Google (para identificarte), el nombre de usuario que elijas, y lo que añadas a tu perfil: nombre
+            visible, descripción y foto. También guardamos tus solicitudes de amistad y amistades.
+          </p>
+          <p>
+            Tu top de artistas y canciones solo se guarda si pulsas «Publicar», y contiene únicamente esos 10 artistas y 10 canciones, no tu
+            historial. Tu perfil y tu top publicado son visibles para cualquier persona con cuenta en {APP_NAME}; tu correo no se muestra a nadie.
+          </p>
+          <p>
+            Puedes editar tu perfil cuando quieras y borrar tu cuenta desde «Editar perfil → Borrar mi cuenta», lo que elimina tu perfil, tu foto,
+            tus amistades y tu cuenta de inicio de sesión.
+          </p>
+        </Section>
+
         <Section title="Historiales importados">
           <p>
             Los archivos que importas (Extended Streaming History de Spotify o Google Takeout) se procesan en tu navegador y se mantienen solo en
@@ -58,8 +75,8 @@ export function PrivacyPage() {
 
         <Section title="Almacenamiento local y terceros">
           <p>
-            La aplicación guarda en tu navegador únicamente la fuente de datos que elegiste. No usa cookies de seguimiento, publicidad ni
-            analítica. El alojamiento (AWS Amplify) puede registrar datos técnicos de acceso, como la dirección IP, por motivos de seguridad.
+            La aplicación guarda en tu navegador la fuente de datos que elegiste y, si tienes cuenta, la sesión de inicio de sesión. No usa
+            cookies de seguimiento, publicidad ni analítica. El alojamiento (AWS Amplify) puede registrar datos técnicos de acceso, como la dirección IP, por motivos de seguridad.
           </p>
         </Section>
 
